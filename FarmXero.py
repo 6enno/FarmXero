@@ -32,75 +32,80 @@ def printTableCsv(table):
 
 
 
-
-cids = []
-table = []
-
-count = 0
-
 # Note that time works in reverse for timestamps start = latest time, end = earliest time
-timeStart = int(time.mktime(datetime.date(2021,02,11).timetuple())) #Local NZ time
-timeEnd = int(time.mktime(datetime.date(2021,02,10).timetuple())) #Local NZ time
-timestampReached = False
+#
+# @endDate is a datetime.date() type eg the start of the day you want to see msgs for
+# @startDate is a datetime.date() time eg the start of the day where you want to stop getting msgs
+# @wallet is a string eg f02xxxx for miner or longer for control
+def getMessageTableForDateRange(endDate, startDate, wallet):
+    table = []
+    count = 0
 
-for page in range(1, 50):
+    timeStart = int(time.mktime(startDate.timetuple())) #Local NZ time
+    timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
+    timestampReached = False
 
-    if timestampReached: break
-    
-    print 'about to send page request'
-    minerMessages = requests.get(messagesUrl(minerAddress, page)).json()
+    for page in range(1, 50):
 
-    for m in minerMessages['messages']:
-        #count = count + 1
-        #if count > 30:
-        #    break
+        if timestampReached: break
         
-        if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
-            print 'timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart)
-            continue
-        if m['timestamp'] <= timeEnd:
-            print 'timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd)
-            timestampReached = True
-            break
+        print 'about to send page request'
+        minerMessages = requests.get(messagesUrl(minerAddress, page)).json()
 
-        count = count + 1
-        print 'found a message within timestamp range ' + str(count)
-        row = {
-            'cid':m['cid'], 
-            'type':m['method'], 
-            'timestamp':m['timestamp'], 
-            'transfer':0, 
-            'collateral':0, 
-            'miner-fee':0, 
-            'burn-fee':0,
-            'status':int(m['receipt']['exitCode'])
-        }
+        for m in minerMessages['messages']:
+            #count = count + 1
+            #if count > 30:
+            #    break
+            
+            if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
+                print 'timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart)
+                continue
+            if m['timestamp'] <= timeEnd:
+                print 'timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd)
+                timestampReached = True
+                break
+
+            count = count + 1
+            print 'found a message within timestamp range ' + str(count)
+            row = {
+                'cid':m['cid'], 
+                'type':m['method'], 
+                'timestamp':m['timestamp'], 
+                'transfer':0, 
+                'collateral':0, 
+                'miner-fee':0, 
+                'burn-fee':0,
+                'status':int(m['receipt']['exitCode'])
+            }
 
 
-        print '    getting msg deets...'
-        messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
-        print '    got msg deets...'
+            print '    getting msg deets...'
+            messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
+            print '    got msg deets...'
 
-        for t in messageDeets['transfers']:
-            if t['type'] == 'burn-fee':
-                row['burn-fee'] = int(t['value'])
+            for t in messageDeets['transfers']:
+                if t['type'] == 'burn-fee':
+                    row['burn-fee'] = int(t['value'])
 
-            elif t['type'] == 'miner-fee':
-                row['miner-fee'] = int(t['value'])
+                elif t['type'] == 'miner-fee':
+                    row['miner-fee'] = int(t['value'])
 
-            elif t['type'] == 'transfer':
-                if row['status'] != 0:
-                    pass
-                elif messageDeets['method'] == 'PreCommitSector' or messageDeets['method'] == 'ProveCommitSector':
-                    row['collateral'] = int(t['value'])
+                elif t['type'] == 'transfer':
+                    if row['status'] != 0:
+                        pass
+                    elif messageDeets['method'] == 'PreCommitSector' or messageDeets['method'] == 'ProveCommitSector':
+                        row['collateral'] = int(t['value'])
+                    else:
+                        row['transfer'] = int(t['value'])
                 else:
-                    row['transfer'] = int(t['value'])
-            else:
-                print 'unknown message type'
+                    print 'unknown message type'
 
-        table.append(row)
+            table.append(row)
 
-#print table
-#print 'found '+str(count)+ ' messages'
+    #print table
+    #print 'found '+str(count)+ ' messages'
+    return table
 
-printTableCsv(table)
+
+
+printTableCsv(getMessageTableForDateRange(datetime.date(2021,02,10), datetime.date(2021,02,11), minerAddress))
