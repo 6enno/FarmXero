@@ -7,8 +7,8 @@ import json
 
 minerAddress = 'f021716'
 
-def messagesUrl(address):
-    return 'https://filfox.info/api/v1/address/'+address+'/messages'
+def messagesUrl(address, page):
+    return 'https://filfox.info/api/v1/address/'+address+'/messages?page='+page+'&pageSize=100'
 
 def messageDetailsUrl(address):
     return 'https://filfox.info/api/v1/message/'+address
@@ -29,7 +29,7 @@ def printTableCsv(table):
     return
 
 
-minerMessages = requests.get(messagesUrl(minerAddress)).json()
+minerMessages = requests.get(messagesUrl(minerAddress, 1)).json()
 
 #print(minerMessages['messages'][0])
 
