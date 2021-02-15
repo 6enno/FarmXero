@@ -3,9 +3,10 @@ import json
 import datetime
 import time
 
-# Current Goal - Output CSV of the following from miner messages:
-# MessageID, type, timestamp, transfer, collateral, miner-fee, burn-fee
+# This module scrapes data from filfox.info/ and populates a table[] of data
 # This will be a 'table[]' of 'rows{}'
+# May also output a csv with the following headers:
+# MessageID, type, timestamp, transfer, collateral, miner-fee, burn-fee
 
 minerAddress = 'f021716'
 
