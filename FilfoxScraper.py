@@ -2,13 +2,14 @@ import requests
 import json
 import datetime
 import time
+import Addresses
 
 # This module scrapes data from filfox.info/ and populates a table[] of data
 # This will be a 'table[]' of 'rows{}'
 # May also output a csv with the following headers:
 # MessageID, type, timestamp, transfer, collateral, miner-fee, burn-fee
 
-minerAddress = 'f021716'
+minerAddress = Addresses.minerAddress
 
 def messagesUrl(address, page):
     return 'https://filfox.info/api/v1/address/'+address+'/messages?page='+str(page)+'&pageSize=100'

@@ -1,0 +1,6 @@
+# Since I am not going to add my own addresses to the git (and you shouldn't either)
+# I have put my addresses in a seperate file called "Addresses.py" you can copy this file and rename it if you want.
+
+# Stick the miner address in the quotes.
+minerAddress = ''
+
