@@ -1,5 +1,6 @@
 Addresses.py
 Secrets.py
+config.py
 *.pyc
 *.swp
 
