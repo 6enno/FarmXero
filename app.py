@@ -7,7 +7,7 @@ from logging.config import dictConfig
 from flask import Flask, url_for, render_template, session, redirect, json, send_file
 from flask_oauthlib.contrib.client import OAuth, OAuth2Application
 from flask_session import Session
-from xero_python.accounting import AccountingApi, ContactPerson, Contact, Contacts
+from xero_python.accounting import AccountingApi, ContactPerson, Contact, Contacts, ManualJournal, ManualJournalLine
 from xero_python.api_client import ApiClient, serialize
 from xero_python.api_client.configuration import Configuration
 from xero_python.api_client.oauth2 import OAuth2Token
@@ -275,6 +275,27 @@ def refresh_token():
         code=jsonify({"Old Token": xero_token, "New token": new_token}),
         sub_title="token refreshed",
     )
+
+
+
+@app.route('/test-this')
+@xero_token_required
+def testTheThing():
+    print ('testing..')
+
+    t = get_xero_tenant_id()
+    a = AccountingApi(api_client)
+
+    jnlLines = [
+            ManualJournalLine(line_amount=555, account_code=200),
+            ManualJournalLine(line_amount=-555, account_code=210)]
+
+    mj = ManualJournal(narration='test journal from webapp 5', journal_lines=jnlLines)
+
+    ret = a.create_manual_journals(t, mj)
+    print(ret)
+
+    return redirect(url_for("index", _external=True))
 
 
 def get_xero_tenant_id():
