@@ -17,23 +17,27 @@ def messagesUrl(address, page):
 def messageDetailsUrl(address):
     return 'https://filfox.info/api/v1/message/'+address
 
+def blocksUrl(address, page):
+    return 'https://filfox.info/api/v1/address/'+address+'/blocks?pageSize=100&page='+str(page)
+
 def printTableCsv(table):
-    print('messageId, type, timestamp, transfer, collateral, miner-fee, burn-fee, status')
+    csvString = 'messageId, type, timestamp, transfer, collateral, miner-fee, burn-fee, slash, status\n'
     for r in table:
-        print(
-            r['cid']+','+
-            r['type']+','+
-            str(r['timestamp']) + ',' +
-            str(r['transfer']) + ',' +
-            str(r['collateral']) + ',' +
-            str(r['miner-fee']) + ',' +
-            str(r['burn-fee']) + ',' +
-            str(r['status'])
-            )
-    return
+        csvString = csvString +\
+            r['cid']+','+\
+            r['type']+','+\
+            str(r['timestamp']) + ',' +\
+            str(r['transfer']) + ',' +\
+            str(r['collateral']) + ',' +\
+            str(r['miner-fee']) + ',' +\
+            str(r['burn-fee']) + ',' +\
+            str(r['slash']) + ',' +\
+            str(r['status']) + '\n'
+    return csvString
 
 
 
+# This pull relevent data from messages over a date range
 # Note that time works in reverse for timestamps start = latest time, end = earliest time
 #
 # @endDate is a datetime.date() type eg the start of the day you want to see msgs for
@@ -47,7 +51,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
     timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
     timestampReached = False
 
-    for page in range(1, 50):
+    for page in range(0, 50):
 
         if timestampReached: break
 
@@ -60,15 +64,15 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             #    break
 
             if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
-                print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
+                # print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
                 continue
             if m['timestamp'] <= timeEnd:
-                print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
+                # print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
                 timestampReached = True
                 break
 
             count = count + 1
-            print('found a message within timestamp range ' + str(count))
+            # print('found a message within timestamp range ' + str(count))
             row = {
                 'cid':m['cid'],
                 'type':m['method'],
@@ -77,6 +81,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                 'collateral':0,
                 'miner-fee':0,
                 'burn-fee':0,
+                'slash':0,
                 'status':int(m['receipt']['exitCode'])
             }
 
@@ -89,6 +94,9 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                 if t['type'] == 'burn-fee':
                     row['burn-fee'] = int(t['value'])
 
+                elif t['type'] == 'burn':
+                    row['slash'] = int(t['value'])
+
                 elif t['type'] == 'miner-fee':
                     row['miner-fee'] = int(t['value'])
 
@@ -100,7 +108,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                     else:
                         row['transfer'] = int(t['value'])
                 else:
-                    print ('unknown message type')
+                    print ('unknown message type: ' + t['type'])
 
             table.append(row)
 
@@ -108,6 +116,56 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
     #print 'found '+str(count)+ ' messages'
     return table
 
+# This gets all the blocks that the miner has won over a length of time
+# Note that time works in reverse for timestamps start = latest time, end = earliest time
+#
+# @endDate is a datetime.date() type eg the start of the day you want to see msgs for
+# @startDate is a datetime.date() time eg the start of the day where you want to stop getting msgs
+# @wallet is a string that represents a miner wallet eg f02xxxx for miner or longer for control
+def getBlocksTableForDateRange(endDate, startDate, wallet):
+    table = []
+    count = 0
+
+    timeStart = int(time.mktime(startDate.timetuple())) #Local NZ time
+    timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
+    timestampReached = False
+
+    for page in range(0, 10):
+
+        if timestampReached: break
+
+        print('about to send page request')
+        minerBlocks = requests.get(blocksUrl(minerAddress, page)).json()
+        print('total blocks: ' + str(minerBlocks['totalCount']))
+
+        for b in minerBlocks['blocks']:
+
+            print('reward '+str(b['reward']))
+            #count = count + 1
+            #if count > 30:
+            #    break
+
+            if b['timestamp'] > timeStart: #larger timestamps are later message > starttime
+                # print('timestamp ('+str(b['timestamp'])+') before timestart ' + str(timeStart))
+                continue
+            if b['timestamp'] <= timeEnd:
+                # print('timestamp ('+str(b['timestamp'])+') after timeend ' + str(timeEnd))
+                timestampReached = True
+                break
+
+            count = count + 1
+            # print('found a block within timestamp range ' + str(count))
+            row = {
+                'cid':b['cid'],
+                'timestamp':b['timestamp'],
+                'win':b['reward'],
+            }
+
+            table.append(row)
+
+    #print table
+    #print 'found '+str(count)+ ' messages'
+    return table
 
 
 #printTableCsv(getMessageTableForDateRange(datetime.date(2021,2,10), datetime.date(2021,2,11), minerAddress))
