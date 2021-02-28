@@ -18,7 +18,7 @@ def messageDetailsUrl(address):
     return 'https://filfox.info/api/v1/message/'+address
 
 def printTableCsv(table):
-    print 'messageId, type, timestamp, transfer, collateral, miner-fee, burn-fee, status'
+    print('messageId, type, timestamp, transfer, collateral, miner-fee, burn-fee, status')
     for r in table:
         print(
             r['cid']+','+
@@ -50,40 +50,40 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
     for page in range(1, 50):
 
         if timestampReached: break
-        
-        print 'about to send page request'
+
+        print('about to send page request')
         minerMessages = requests.get(messagesUrl(minerAddress, page)).json()
 
         for m in minerMessages['messages']:
             #count = count + 1
             #if count > 30:
             #    break
-            
+
             if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
-                print 'timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart)
+                print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
                 continue
             if m['timestamp'] <= timeEnd:
-                print 'timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd)
+                print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
                 timestampReached = True
                 break
 
             count = count + 1
-            print 'found a message within timestamp range ' + str(count)
+            print('found a message within timestamp range ' + str(count))
             row = {
-                'cid':m['cid'], 
-                'type':m['method'], 
-                'timestamp':m['timestamp'], 
-                'transfer':0, 
-                'collateral':0, 
-                'miner-fee':0, 
+                'cid':m['cid'],
+                'type':m['method'],
+                'timestamp':m['timestamp'],
+                'transfer':0,
+                'collateral':0,
+                'miner-fee':0,
                 'burn-fee':0,
                 'status':int(m['receipt']['exitCode'])
             }
 
 
-            print '    getting msg deets...'
+            print('    getting msg deets...')
             messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
-            print '    got msg deets...'
+            print('    got msg deets...')
 
             for t in messageDeets['transfers']:
                 if t['type'] == 'burn-fee':
@@ -100,7 +100,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                     else:
                         row['transfer'] = int(t['value'])
                 else:
-                    print 'unknown message type'
+                    print ('unknown message type')
 
             table.append(row)
 
@@ -110,4 +110,4 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
 
 
 
-printTableCsv(getMessageTableForDateRange(datetime.date(2021,02,10), datetime.date(2021,02,11), minerAddress))
+printTableCsv(getMessageTableForDateRange(datetime.date(2021,2,10), datetime.date(2021,2,11), minerAddress))
