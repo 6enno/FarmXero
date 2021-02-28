@@ -81,9 +81,9 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             }
 
 
-            print('    getting msg deets...')
+            # print('    getting msg deets...')
             messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
-            print('    got msg deets...')
+            # print('    got msg deets...')
 
             for t in messageDeets['transfers']:
                 if t['type'] == 'burn-fee':
@@ -110,4 +110,4 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
 
 
 
-printTableCsv(getMessageTableForDateRange(datetime.date(2021,2,10), datetime.date(2021,2,11), minerAddress))
+#printTableCsv(getMessageTableForDateRange(datetime.date(2021,2,10), datetime.date(2021,2,11), minerAddress))
