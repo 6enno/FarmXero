@@ -9,6 +9,8 @@ import Addresses
 # May also output a csv with the following headers:
 # MessageID, type, timestamp, transfer, collateral, miner-fee, burn-fee
 
+MAX_MESSAGE_PAGES = 50
+
 minerAddress = Addresses.minerAddress
 
 def messagesUrl(address, page):
@@ -51,12 +53,17 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
     timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
     timestampReached = False
 
-    for page in range(0, 50):
+    for page in range(0, MAX_MESSAGE_PAGES):
 
         if timestampReached: break
 
         print('about to send page request')
         minerMessages = requests.get(messagesUrl(minerAddress, page)).json()
+
+        if(len(minerMessages['messages']) == 0):
+            print('Reached end of messages..')
+            print(minerMessages)
+            break
 
         for m in minerMessages['messages']:
             #count = count + 1
@@ -73,17 +80,21 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
 
             count = count + 1
             # print('found a message within timestamp range ' + str(count))
-            row = {
-                'cid':m['cid'],
-                'type':m['method'],
-                'timestamp':m['timestamp'],
-                'transfer':0,
-                'collateral':0,
-                'miner-fee':0,
-                'burn-fee':0,
-                'slash':0,
-                'status':int(m['receipt']['exitCode'])
-            }
+            try:
+                row = {
+                    'cid':m['cid'],
+                    'type':m['method'],
+                    'timestamp':m['timestamp'],
+                    'transfer':0,
+                    'collateral':0,
+                    'miner-fee':0,
+                    'burn-fee':0,
+                    'slash':0,
+                    'status':int(m['receipt']['exitCode'])
+                }
+            except KeyError:
+                print('message status unknown: '+m.get('cid'))
+                continue
 
 
             # print('    getting msg deets...')
@@ -138,9 +149,13 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
         minerBlocks = requests.get(blocksUrl(minerAddress, page)).json()
         print('total blocks: ' + str(minerBlocks['totalCount']))
 
+        if(len(minerBlocks['blocks']) == 0):
+            print('Reached end of blocks')
+            break
+
         for b in minerBlocks['blocks']:
 
-            print('reward '+str(b['reward']))
+            # print('reward '+str(b['reward']))
             #count = count + 1
             #if count > 30:
             #    break

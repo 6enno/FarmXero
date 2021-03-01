@@ -13,7 +13,7 @@ from xero_python.accounting import AccountingApi, ManualJournal, ManualJournalLi
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
 
-startDate = datetime.date(2021,2,23)
+startDate = datetime.date(2020,2,28)
 endDate = datetime.date(2021,2,28)
 
 table = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, Addresses.minerAddress)
@@ -40,7 +40,7 @@ for b in blocksWon:
     blockRewards = blockRewards + int(b['win'])
     numBlocksWon = numBlocksWon + 1
 
-exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(startDate)
+exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(endDate)
 transfers = nanoFilToFil(transfers) * exchRate
 collat = nanoFilToFil(collat) * exchRate
 minerFee = nanoFilToFil(minerFee) * exchRate
