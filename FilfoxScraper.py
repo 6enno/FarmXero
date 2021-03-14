@@ -37,7 +37,12 @@ def printTableCsv(table):
             str(r['status']) + '\n'
     return csvString
 
-
+def writeTableToCSV(filename, startDate, endDate, minerAddress):
+    table = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, minerAddress)
+    f = open(filename+'.csv', 'w')
+    f.write(FilfoxScraper.printTableCsv(table))
+    f.close()
+    return 0
 
 # This pull relevent data from messages over a date range
 # Note that time works in reverse for timestamps start = latest time, end = earliest time
