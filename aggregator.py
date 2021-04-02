@@ -4,6 +4,7 @@
 import json
 import datetime
 import time
+import os
 import FilfoxScraper
 import Addresses
 import coingeckoScraper
@@ -17,7 +18,7 @@ from xero_python.accounting import ManualJournal, ManualJournalLine
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
 
-def getJournalForDay(walletAddress, day, printJnl=True):
+def getJournalForDay(walletAddress, day, printJnl=True, archive=True):
 
     startDate = day
     endDate = day + datetime.timedelta(days=1)
@@ -57,7 +58,7 @@ def getJournalForDay(walletAddress, day, printJnl=True):
     nSlash = "Slash: " + str(nanoFilToFil(slash)) + " FIL"
     nTransfers = "Transfers: " + str(nanoFilToFil(transfers)) + " FIL"
     nBlockRewards = "Block Rewards: " + str(nanoFilToFil(blockRewards)) + " FIL (" + str(numBlocksWon)+") blocks won"
-    nMinerBalance = "Miner Balance: todo" #+ str(nanoFilToFil(minerBalance)) + "FIL"
+    nMinerBalance = "Miner Balance: " #+ str(nanoFilToFil(minerBalance)) + "FIL"
 
     exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(endDate)
     collatNzd = nanoFilToFil(collat) * exchRate
@@ -65,7 +66,7 @@ def getJournalForDay(walletAddress, day, printJnl=True):
     burnFeeNzd = nanoFilToFil(burnFee) * exchRate
     slashNzd = nanoFilToFil(slash) * exchRate
     transfersNzd = nanoFilToFil(transfers) * exchRate
-    blockRewardsNzd = -nanoFilToFil(blockRewards)*exchRate#Rewards are credits therefore are -ve
+    blockRewardsNzd = -nanoFilToFil(blockRewards) * exchRate#Rewards are credits therefore are -ve
     minerBalanceNzd = -(transfersNzd + collatNzd + minerFeeNzd + burnFeeNzd + blockRewardsNzd)
     jnlNarration = 'Filfox data for the day ' + startDate.strftime('%d-%m-%Y') #+ ' to ' + endDate.strftime('%d-%m-%Y')
 
@@ -85,7 +86,23 @@ def getJournalForDay(walletAddress, day, printJnl=True):
             jnlLines.append(l)
 
 
-    mj = ManualJournal(narration=jnlNarration, journal_lines=jnlLines)
+    mj = ManualJournal(narration=jnlNarration, journal_lines=jnlLines, date=startDate)
+
+    if(archive):
+        ARCHIVE_HEADER = 'date, narration, \
+        collat, Miner Fee, Burn Fee, Slash, Transfers, Block rewards, \
+        Blocks won, exch rate, \
+        NZD collat, NZD Miner Fee, NZD Burn Fee, NZD Slash, NZD Transfers, NZD Block rewards, NZD Balance\n'
+        if(os.path.exists(data_folders.JOURNAL_ARCHIVE) == False):
+            with open(data_folders.JOURNAL_ARCHIVE, 'w') as f:
+                f.write(ARCHIVE_HEADER)
+        csvLine = startDate.strftime('%d-%m-%Y')+','+str(jnlNarration)+','+\
+        str(collat)+','+str(minerFee)+','+str(burnFee)+','+str(slash)+','+str(transfers)+','+str(blockRewards)+','+\
+        str(numBlocksWon)+','+str(exchRate)+','+\
+        str(collatNzd)+','+str(minerFeeNzd)+','+str(burnFeeNzd)+','+str(slashNzd)+','+str(transfersNzd)+','+str(blockRewardsNzd)+','+str(minerBalanceNzd)+'\n'
+        with open(data_folders.JOURNAL_ARCHIVE, 'a') as f:
+            f.write(csvLine)
+
 
     if(printJnl):
         print(jnlNarration)
