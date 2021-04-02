@@ -18,6 +18,10 @@ from xero_python.utils import getvalue
 import logging_settings
 from utils import jsonify, serialize_model
 
+import aggregator
+import Addresses
+import datetime
+
 dictConfig(logging_settings.default_settings)
 
 # configure main flask application
@@ -286,11 +290,13 @@ def testTheThing():
     t = get_xero_tenant_id()
     a = AccountingApi(api_client)
 
-    jnlLines = [
-            ManualJournalLine(line_amount=555, account_code=200),
-            ManualJournalLine(line_amount=-555, account_code=210)]
+    # jnlLines = [
+    #         ManualJournalLine(line_amount=555, account_code=200),
+    #         ManualJournalLine(line_amount=-555, account_code=210)]
+    #
+    # mj = ManualJournal(narration='test journal from webapp 6', journal_lines=jnlLines)
 
-    mj = ManualJournal(narration='test journal from webapp 5', journal_lines=jnlLines)
+    mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
 
     ret = a.create_manual_journals(t, mj)
     print(ret)

@@ -7,13 +7,16 @@ import time
 import FilfoxScraper
 import Addresses
 import coingeckoScraper
+import xeroAccounts as xa
 
-from xero_python.accounting import AccountingApi, ManualJournal, ManualJournalLine
+from xero_python.accounting import ManualJournal, ManualJournalLine
+
+# from xero_python.accounting import AccountingApi, ManualJournal, ManualJournalLine
 
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
 
-def getJournalForDay(walletAddress, day): # todo: add date
+def getJournalForDay(walletAddress, day, printJnl=True):
 
     startDate = day
     endDate = day + datetime.timedelta(days=1)
@@ -42,26 +45,55 @@ def getJournalForDay(walletAddress, day): # todo: add date
         blockRewards = blockRewards + int(b['win'])
         numBlocksWon = numBlocksWon + 1
 
-    exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(endDate)
-    transfers = nanoFilToFil(transfers) * exchRate
-    collat = nanoFilToFil(collat) * exchRate
-    minerFee = nanoFilToFil(minerFee) * exchRate
-    burnFee = nanoFilToFil(burnFee) * exchRate
-    slash = nanoFilToFil(slash) * exchRate
-    blockRewards = -nanoFilToFil(blockRewards)*exchRate#Rewards are credits therefore are -ve
-    minerBalance = -(transfers + collat + minerFee + burnFee + blockRewards)
-    jnlNarration = 'Filfox data for the period ' + startDate.strftime('%d-%m-%Y') + ' to ' + endDate.strftime('%d-%m-%Y')
+    nCollat = "Collat: " + str(nanoFilToFil(collat)) + " FIL"
+    nMinerFee = "Miner Fee: " + str(nanoFilToFil(minerFee)) + " FIL"
+    nBurnFee = "Burn Fee: " + str(nanoFilToFil(burnFee)) + " FIL"
+    nSlash = "Slash: " + str(nanoFilToFil(slash)) + " FIL"
+    nTransfers = "Transfers: " + str(nanoFilToFil(transfers)) + " FIL"
+    nBlockRewards = "Block Rewards: " + str(nanoFilToFil(blockRewards)) + " FIL"
+    nMinerBalance = "Miner Balance: todo" #+ str(nanoFilToFil(minerBalance)) + "FIL"
 
-    print(jnlNarration)
-    print('Dr collat ' + str(collat))
-    print('Dr miner fee ' + str(minerFee))
-    print('Dr burn fee ' + str(burnFee))
-    print('Dr slash ' + str(slash))
-    print('Dr/cr transfers ' + str(transfers))
-    print('     Cr block rewards ' + str(blockRewards))
-    print('     Cr minerbalance (b/s) ' + str(minerBalance))
-    print('values in NZD')
-    print('blocks won: ' + str(numBlocksWon))
+    exchRateNzd = coingeckoScraper.getFilecoinNZDPriceOnDay(endDate)
+    collatNzd = nanoFilToFil(collat) * exchRate
+    minerFeeNzd = nanoFilToFil(minerFee) * exchRate
+    burnFeeNzd = nanoFilToFil(burnFee) * exchRate
+    slashNzd = nanoFilToFil(slash) * exchRate
+    transfersNzd = nanoFilToFil(transfers) * exchRate
+    blockRewardsNzd = -nanoFilToFil(blockRewards)*exchRate#Rewards are credits therefore are -ve
+    minerBalanceNzd = -(transfers + collat + minerFee + burnFee + blockRewards)
+    jnlNarrationNzd = 'Filfox data for the day ' + startDate.strftime('%d-%m-%Y') #+ ' to ' + endDate.strftime('%d-%m-%Y')
+
+    jnlLinesAll = [
+            ManualJournalLine(line_amount=collatNzd, account_code=xa.COLLAT, description=nCollat),
+            ManualJournalLine(line_amount=minerFeeNzd, account_code=xa.MINER_FEE, description=nMinerFee),
+            ManualJournalLine(line_amount=burnFeeNzd, account_code=xa.BURN_FEE, description=nBurnFee),
+            ManualJournalLine(line_amount=slashNzd, account_code=xa.SLASH, description=nSlash),
+            ManualJournalLine(line_amount=transfersNzd, account_code=xa.TRANSFERS, description=nTransfers),
+            ManualJournalLine(line_amount=blockRewardsNzd, account_code=xa.BLOCK_REWARDS, description=nBlockRewards),
+            ManualJournalLine(line_amount=minerBalanceNzd, account_code=xa.MINER_BALANCE, description=nMinerBalance)
+            ]
+    jnlLines = []
+
+    for l in jnlLinesAll:
+        if(l.line_amount != 0):
+            jnlLines.append(l)
 
 
-getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,12))
+    mj = ManualJournal(narration=jnlNarration, journal_lines=jnlLines)
+
+    if(printJnl):
+        print(jnlNarration)
+        print('Dr collat (601)' + str(collat)) # collat is represented within miner balance
+        print('Dr miner fee (311)' + str(minerFee))
+        print('Dr burn fee (312)' + str(burnFee))
+        print('Dr slash (319)' + str(slash))
+        print('Dr/cr transfers (990)' + str(transfers)) #These are transferred out of info.farm accounts for now
+        print('     Cr block rewards (200)' + str(blockRewards))
+        print('     Cr minerbalance (601) ' + str(minerBalance))
+        print('values in NZD')
+        print('blocks won: ' + str(numBlocksWon))
+
+    return mj
+
+
+#getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,12))
