@@ -37,10 +37,24 @@ def printTableCsv(table):
             str(r['status']) + '\n'
     return csvString
 
-def writeTableToCSV(filename, startDate, endDate, minerAddress):
-    table = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, minerAddress)
-    f = open(filename+'.csv', 'w')
-    f.write(FilfoxScraper.printTableCsv(table))
+def writeTableToCSV(filename, table):
+    f = open(filename, 'w')
+    f.write(printTableCsv(table))
+    f.close()
+    return 0
+
+def printBlockTableCsv(table):
+    csvString = 'messageId, type, timestamp, reward\n'
+    for r in table:
+        csvString = csvString +\
+            r['cid']+','+\
+            str(r['timestamp']) + ',' +\
+            str(r['win']) + '\n'
+    return csvString
+
+def writeBlockTableToCSV(filename, table):
+    f = open(filename, 'w')
+    f.write(printBlockTableCsv(table))
     f.close()
     return 0
 
