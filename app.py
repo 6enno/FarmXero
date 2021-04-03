@@ -306,7 +306,7 @@ def testTheThing():
     # print(balance)
 
 # Test 3: get balances from journals file
-    jBalances = data_folders.getJournalTotals()
+    jBalances = data_folders.getJournalTotals(date, date)
     print(jBalances)
 
 
