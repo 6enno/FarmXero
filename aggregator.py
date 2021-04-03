@@ -24,7 +24,14 @@ def getJournalForDay(day, printJnl=True, archive=True):
     startDate = day
     endDate = day + datetime.timedelta(days=1)
 
+    # Generate the miner wallet table
     table = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, walletAddress)
+
+    # Append transactions from the other wallets
+    for w in Addresses.wallets:
+        wTable = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, w)
+        table += wTable[1:]
+
     msgFn = data_folders.MESSAGE_ARCHIVE + 'msgs_' + startDate.strftime('%d-%m-%Y') + '.csv'
     FilfoxScraper.writeTableToCSV(msgFn, table)
 

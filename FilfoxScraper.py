@@ -208,8 +208,8 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
 
 
 
-addr = Addresses.minerAddress
-# addr = Addresses.wallet5
-
-t = getMessageTableForDateRange(datetime.date(2021,3,25), datetime.date(2021,3,26), addr)
-print(t)
+# addr = Addresses.minerAddress
+# # addr = Addresses.wallet5
+#
+# t = getMessageTableForDateRange(datetime.date(2021,3,25), datetime.date(2021,3,26), addr)
+# print(t)
