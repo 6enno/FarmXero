@@ -296,8 +296,8 @@ def testTheThing():
 
 
 # Test 1: Get a journal for a day and send it
-    # mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
-    # ret = a.create_manual_journals(t, mj)
+    mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
+    ret = a.create_manual_journals(t, mj)
     # print(ret)
 
 # Test 2: Get balances from Xero to Rec against
@@ -306,12 +306,19 @@ def testTheThing():
     # print(balance)
 
 # Test 3: get balances from journals file
-    jBalances = data_folders.getJournalTotals(date, date)
-    print(jBalances)
+    # jBalances = data_folders.getJournalTotals(date, date)
+    # print(jBalances)
+
+# Test 4: get balances from messages files
+    # mBalances = data_folders.getMessagesTotals(date, date)
+
+# Test 5: Rec the FIL
+    err = data_folders.quickRecFIL(date, date)
+
+
 
 
     return redirect(url_for("index", _external=True))
-
 
 def get_xero_tenant_id():
     token = obtain_xero_oauth2_token()
