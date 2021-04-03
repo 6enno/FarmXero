@@ -19,6 +19,7 @@ import logging_settings
 from utils import jsonify, serialize_model
 
 import aggregator
+import xeroAccounts
 import Addresses
 import datetime
 
@@ -290,16 +291,20 @@ def testTheThing():
     t = get_xero_tenant_id()
     a = AccountingApi(api_client)
 
-    # jnlLines = [
-    #         ManualJournalLine(line_amount=555, account_code=200),
-    #         ManualJournalLine(line_amount=-555, account_code=210)]
-    #
-    # mj = ManualJournal(narration='test journal from webapp 6', journal_lines=jnlLines)
+    date = datetime.date(2021,3,31)
 
-    mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
 
-    ret = a.create_manual_journals(t, mj)
-    print(ret)
+# Test 1: Get a journal for a day and send it
+    # mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
+    # ret = a.create_manual_journals(t, mj)
+    # print(ret)
+
+# Test 2: Get balances from Xero to Rec against
+# Need miner balance (601) xeroAccounts.MINER_BALANCE
+    balance = xeroAccounts.getTb(a, t, date).get('601')
+    print(balance)
+
+
 
     return redirect(url_for("index", _external=True))
 
