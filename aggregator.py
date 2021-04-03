@@ -18,8 +18,9 @@ from xero_python.accounting import ManualJournal, ManualJournalLine
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
 
-def getJournalForDay(walletAddress, day, printJnl=True, archive=True):
+def getJournalForDay(day, printJnl=True, archive=True):
 
+    walletAddress = Addresses.minerAddress
     startDate = day
     endDate = day + datetime.timedelta(days=1)
 
@@ -82,7 +83,7 @@ def getJournalForDay(walletAddress, day, printJnl=True, archive=True):
     jnlLines = []
 
     for l in jnlLinesAll:
-        if(l.line_amount >= 0.01):
+        if(abs(l.line_amount) >= 0.01):
             jnlLines.append(l)
 
 

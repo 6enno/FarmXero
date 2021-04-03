@@ -20,7 +20,6 @@ from utils import jsonify, serialize_model
 
 import aggregator
 import xeroAccounts
-import Addresses
 import data_folders
 import datetime
 
@@ -295,11 +294,11 @@ def testTheThing():
 
     date = datetime.date(2021,3,25)
     endDate = date
-    startDate = datetime.date(2021,3,20)
+    startDate = datetime.date(2021,3,25)
 
 
 # Test 1: Get a journal for a day and send it
-    # mj = aggregator.getJournalForDay(Addresses.minerAddress, date)
+    # mj = aggregator.getJournalForDay(date)
     # ret = a.create_manual_journals(t, mj)
     # print(ret)
 
@@ -320,10 +319,9 @@ def testTheThing():
 
 # Test 6: Get Daily Journals over a date range (Massively inefficient but owel)
 
-
     currentDate = startDate
     while (currentDate <= endDate):
-        mj = aggregator.getJournalForDay(Addresses.minerAddress, currentDate)
+        mj = aggregator.getJournalForDay(currentDate)
         ret = a.create_manual_journals(t, mj)
         currentDate += datetime.timedelta(days=1)
 

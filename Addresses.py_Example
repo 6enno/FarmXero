@@ -4,3 +4,10 @@
 # Stick the miner address in the quotes.
 minerAddress = ''
 
+wallet1 = ''
+wallet2 = ''
+wallet3 = ''
+wallet4 = ''
+wallet5 = ''
+
+wallets = [wallet1, wallet2, wallet3, wallet4, wallet5]

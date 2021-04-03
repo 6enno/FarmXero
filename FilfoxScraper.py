@@ -77,7 +77,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
         if timestampReached: break
 
         print('about to send page request')
-        minerMessages = requests.get(messagesUrl(minerAddress, page)).json()
+        minerMessages = requests.get(messagesUrl(wallet, page)).json()
 
         if(len(minerMessages['messages']) == 0):
             print('Reached end of messages..')
@@ -131,12 +131,17 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                     row['miner-fee'] = int(t['value'])
 
                 elif t['type'] == 'transfer':
+                    # transfers can go out or in but always show positive in messages (lets reverse the ones that are from this wallet)
+                    direction = 1
+                    if (t['from'] == wallet):
+                        direction = -1
+
                     if row['status'] != 0:
                         pass
                     elif messageDeets['method'] == 'PreCommitSector' or messageDeets['method'] == 'ProveCommitSector':
-                        row['collateral'] = int(t['value'])
+                        row['collateral'] = direction * int(t['value'])
                     else:
-                        row['transfer'] = int(t['value'])
+                        row['transfer'] = direction * int(t['value'])
                 else:
                     print ('unknown message type: ' + t['type'])
 
@@ -165,7 +170,7 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
         if timestampReached: break
 
         print('about to send page request')
-        minerBlocks = requests.get(blocksUrl(minerAddress, page)).json()
+        minerBlocks = requests.get(blocksUrl(wallet, page)).json()
         print('total blocks: ' + str(minerBlocks['totalCount']))
 
         if(len(minerBlocks['blocks']) == 0):
@@ -202,4 +207,9 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
     return table
 
 
-#printTableCsv(getMessageTableForDateRange(datetime.date(2021,2,10), datetime.date(2021,2,11), minerAddress))
+
+addr = Addresses.minerAddress
+# addr = Addresses.wallet5
+
+t = getMessageTableForDateRange(datetime.date(2021,3,25), datetime.date(2021,3,26), addr)
+print(t)
