@@ -60,13 +60,13 @@ def getJournalForDay(walletAddress, day, printJnl=True, archive=True):
     nBlockRewards = "Block Rewards: " + str(nanoFilToFil(blockRewards)) + " FIL (" + str(numBlocksWon)+") blocks won"
     nMinerBalance = "Miner Balance: " #+ str(nanoFilToFil(minerBalance)) + "FIL"
 
-    exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(endDate)
-    collatNzd = nanoFilToFil(collat) * exchRate
-    minerFeeNzd = nanoFilToFil(minerFee) * exchRate
-    burnFeeNzd = nanoFilToFil(burnFee) * exchRate
-    slashNzd = nanoFilToFil(slash) * exchRate
-    transfersNzd = nanoFilToFil(transfers) * exchRate
-    blockRewardsNzd = -nanoFilToFil(blockRewards) * exchRate#Rewards are credits therefore are -ve
+    exchRate = coingeckoScraper.getFilecoinNZDPriceOnDay(day)
+    collatNzd = round(nanoFilToFil(collat) * exchRate, 2)
+    minerFeeNzd = round(nanoFilToFil(minerFee) * exchRate, 2)
+    burnFeeNzd = round(nanoFilToFil(burnFee) * exchRate, 2)
+    slashNzd = round(nanoFilToFil(slash) * exchRate, 2)
+    transfersNzd = round(nanoFilToFil(transfers) * exchRate, 2)
+    blockRewardsNzd = -round(nanoFilToFil(blockRewards) * exchRate, 2)#Rewards are credits therefore are -ve
     minerBalanceNzd = -(transfersNzd + collatNzd + minerFeeNzd + burnFeeNzd + blockRewardsNzd)
     jnlNarration = 'Filfox data for the day ' + startDate.strftime('%d-%m-%Y') #+ ' to ' + endDate.strftime('%d-%m-%Y')
 
@@ -82,7 +82,7 @@ def getJournalForDay(walletAddress, day, printJnl=True, archive=True):
     jnlLines = []
 
     for l in jnlLinesAll:
-        if(l.line_amount != 0):
+        if(l.line_amount >= 0.01):
             jnlLines.append(l)
 
 

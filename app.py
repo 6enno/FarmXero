@@ -292,12 +292,15 @@ def testTheThing():
     t = get_xero_tenant_id()
     a = AccountingApi(api_client)
 
-    date = datetime.date(2021,3,31)
+
+    date = datetime.date(2021,3,25)
+    endDate = date
+    startDate = datetime.date(2021,3,20)
 
 
 # Test 1: Get a journal for a day and send it
-    mj = aggregator.getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,31))
-    ret = a.create_manual_journals(t, mj)
+    # mj = aggregator.getJournalForDay(Addresses.minerAddress, date)
+    # ret = a.create_manual_journals(t, mj)
     # print(ret)
 
 # Test 2: Get balances from Xero to Rec against
@@ -313,9 +316,18 @@ def testTheThing():
     # mBalances = data_folders.getMessagesTotals(date, date)
 
 # Test 5: Rec the FIL
-    err = data_folders.quickRecFIL(date, date)
+    # err = data_folders.quickRecFIL(date, date)
+
+# Test 6: Get Daily Journals over a date range (Massively inefficient but owel)
 
 
+    currentDate = startDate
+    while (currentDate <= endDate):
+        mj = aggregator.getJournalForDay(Addresses.minerAddress, currentDate)
+        ret = a.create_manual_journals(t, mj)
+        currentDate += datetime.timedelta(days=1)
+
+    err = data_folders.quickRecFIL(startDate, endDate)
 
 
     return redirect(url_for("index", _external=True))
