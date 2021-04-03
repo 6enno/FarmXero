@@ -21,6 +21,7 @@ from utils import jsonify, serialize_model
 import aggregator
 import xeroAccounts
 import Addresses
+import data_folders
 import datetime
 
 dictConfig(logging_settings.default_settings)
@@ -301,9 +302,12 @@ def testTheThing():
 
 # Test 2: Get balances from Xero to Rec against
 # Need miner balance (601) xeroAccounts.MINER_BALANCE
-    balance = xeroAccounts.getTb(a, t, date).get('601')
-    print(balance)
+    # balance = xeroAccounts.getTb(a, t, date).get('601')
+    # print(balance)
 
+# Test 3: get balances from journals file
+    jBalances = data_folders.getJournalTotals()
+    print(jBalances)
 
 
     return redirect(url_for("index", _external=True))
