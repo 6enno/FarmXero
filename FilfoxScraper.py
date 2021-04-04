@@ -121,20 +121,24 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             # print('    got msg deets...')
 
             for t in messageDeets['transfers']:
+                # transfers and collat can go out or in but always show positive in messages (lets reverse the ones that are from this wallet)
+                direction = 1
+                # we ignore burn fees, slashes and minerfees if theyre not from this wallet to avoid double counting
+                fromThis = 0
+                if (t['from'] == wallet):
+                    direction = -1
+                    fromThis = 1
+
                 if t['type'] == 'burn-fee':
-                    row['burn-fee'] = int(t['value'])
+                    row['burn-fee'] = int(t['value']) * fromThis
 
                 elif t['type'] == 'burn':
-                    row['slash'] = int(t['value'])
+                    row['slash'] = int(t['value']) * fromThis
 
                 elif t['type'] == 'miner-fee':
-                    row['miner-fee'] = int(t['value'])
+                    row['miner-fee'] = int(t['value']) * fromThis
 
                 elif t['type'] == 'transfer':
-                    # transfers can go out or in but always show positive in messages (lets reverse the ones that are from this wallet)
-                    direction = 1
-                    if (t['from'] == wallet):
-                        direction = -1
 
                     if row['status'] != 0:
                         pass
