@@ -315,14 +315,15 @@ def testTheThing():
 
 # Test 6: Get Daily Journals over a date range (Massively inefficient but owel)
 
-    startDate = datetime.date(2021,2,11)
-    date = datetime.date(2021,2,28)
+    startDate = datetime.date(2020,11,3)
+    date = datetime.date(2020,11,30)
     endDate = date
 
     currentDate = startDate
     while (currentDate <= endDate):
         mj = aggregator.getJournalForDay(currentDate)
-        ret = a.create_manual_journals(t, mj)
+        if (len(mj.journal_lines) > 2):
+            ret = a.create_manual_journals(t, mj)
         currentDate += datetime.timedelta(days=1)
 
     err = data_folders.quickRecFIL(startDate, endDate)

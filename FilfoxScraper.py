@@ -97,7 +97,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
                 timestampReached = True
                 break
 
-            count = count + 1
+            # count = count + 1
             # print('found a message within timestamp range ' + str(count))
             try:
                 row = {
