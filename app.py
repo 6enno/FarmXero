@@ -292,10 +292,6 @@ def testTheThing():
     a = AccountingApi(api_client)
 
 
-    date = datetime.date(2021,3,25)
-    endDate = date
-    startDate = datetime.date(2021,3,25)
-
 
 # Test 1: Get a journal for a day and send it
     # mj = aggregator.getJournalForDay(date)
@@ -318,6 +314,10 @@ def testTheThing():
     # err = data_folders.quickRecFIL(date, date)
 
 # Test 6: Get Daily Journals over a date range (Massively inefficient but owel)
+
+    startDate = datetime.date(2021,2,11)
+    date = datetime.date(2021,2,28)
+    endDate = date
 
     currentDate = startDate
     while (currentDate <= endDate):
