@@ -30,7 +30,7 @@ def getJournalForDay(day, printJnl=True, archive=True):
     # Append transactions from the other wallets
     for w in Addresses.wallets:
         wTable = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, w)
-        table += wTable[1:]
+        table += wTable
 
     msgFn = data_folders.MESSAGE_ARCHIVE + 'msgs_' + startDate.strftime('%d-%m-%Y') + '.csv'
     FilfoxScraper.writeTableToCSV(msgFn, table)
@@ -127,4 +127,4 @@ def getJournalForDay(day, printJnl=True, archive=True):
     return mj
 
 
-#getJournalForDay(Addresses.minerAddress, datetime.date(2021,3,12))
+# getJournalForDay(datetime.date(2020,11,1))

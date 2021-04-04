@@ -9,7 +9,7 @@ import Addresses
 # May also output a csv with the following headers:
 # MessageID, type, timestamp, transfer, collateral, miner-fee, burn-fee
 
-MAX_MESSAGE_PAGES = 50
+MAX_MESSAGE_PAGES = 1000
 
 minerAddress = Addresses.minerAddress
 
@@ -71,6 +71,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
     timeStart = int(time.mktime(startDate.timetuple())) #Local NZ time
     timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
     timestampReached = False
+    allMsgs = []
 
     for page in range(0, MAX_MESSAGE_PAGES):
 
@@ -92,67 +93,72 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
                 # print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
                 continue
-            if m['timestamp'] <= timeEnd:
-                # print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
+            elif m['timestamp'] <= timeEnd:
+                print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
                 timestampReached = True
                 break
-
-            # count = count + 1
-            # print('found a message within timestamp range ' + str(count))
-            try:
-                row = {
-                    'cid':m['cid'],
-                    'type':m['method'],
-                    'timestamp':m['timestamp'],
-                    'transfer':0,
-                    'collateral':0,
-                    'miner-fee':0,
-                    'burn-fee':0,
-                    'slash':0,
-                    'status':int(m['receipt']['exitCode'])
-                }
-            except KeyError:
-                print('message status unknown: '+m.get('cid'))
-                continue
+            else:
+                allMsgs.append(m)
 
 
-            # print('    getting msg deets...')
-            messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
-            # print('    got msg deets...')
+    for m in allMsgs:
+        # count = count + 1
+        # print('found a message within timestamp range ' + str(count))
+        try:
+            row = {
+                'cid':m['cid'],
+                'type':m['method'],
+                'timestamp':m['timestamp'],
+                'transfer':0,
+                'collateral':0,
+                'miner-fee':0,
+                'burn-fee':0,
+                'slash':0,
+                'status':int(m['receipt']['exitCode'])
+            }
+        except KeyError:
+            print('message status unknown: '+m.get('cid'))
+            continue
 
-            for t in messageDeets['transfers']:
-                # transfers and collat can go out or in but always show positive in messages (lets reverse the ones that are from this wallet)
-                direction = 1
-                # we ignore burn fees, slashes and minerfees if theyre not from this wallet to avoid double counting
-                fromThis = 0
-                if (t['from'] == wallet):
-                    direction = -1
-                    fromThis = 1
 
-                if t['type'] == 'burn-fee':
-                    row['burn-fee'] = int(t['value']) * fromThis
+        # print('    getting msg deets...')
+        messageDeets = requests.get(messageDetailsUrl(m['cid'])).json()
+        # print('    got msg deets...')
 
-                elif t['type'] == 'burn':
-                    row['slash'] = int(t['value']) * fromThis
+        for t in messageDeets['transfers']:
+            # transfers and collat can go out or in but always show positive in messages (lets reverse the ones that are from this wallet)
+            direction = 1
+            # we ignore burn fees, slashes, minerfees and collat if theyre not from this wallet to avoid double counting
+            fromThis = 0
+            if (t['from'] == wallet):
+                direction = -1
+                fromThis = 1
 
-                elif t['type'] == 'miner-fee':
-                    row['miner-fee'] = int(t['value']) * fromThis
+            if t['type'] == 'burn-fee':
+                row['burn-fee'] = int(t['value']) * fromThis
 
-                elif t['type'] == 'transfer':
+            elif t['type'] == 'burn':
+                row['slash'] = int(t['value']) * fromThis
 
-                    if row['status'] != 0:
-                        pass
-                    elif messageDeets['method'] == 'PreCommitSector' or messageDeets['method'] == 'ProveCommitSector':
-                        row['collateral'] = direction * int(t['value'])
-                    else:
-                        row['transfer'] = direction * int(t['value'])
+            elif t['type'] == 'miner-fee':
+                row['miner-fee'] = int(t['value']) * fromThis
+
+            elif t['type'] == 'transfer':
+
+                if row['status'] != 0:
+                    pass
+                elif messageDeets['method'] == 'PreCommitSector' or messageDeets['method'] == 'ProveCommitSector':
+                    row['collateral'] = fromThis * int(t['value'])
                 else:
-                    print ('unknown message type: ' + t['type'])
+                    row['transfer'] = direction * int(t['value'])
+            else:
+                print ('unknown message type: ' + t['type'])
 
-            table.append(row)
+        table.append(row)
 
     #print table
     #print 'found '+str(count)+ ' messages'
+    print('found all '+str(len(allMsgs))+' messages for wallet ' + wallet)
     return table
 
 # This gets all the blocks that the miner has won over a length of time
@@ -169,7 +175,7 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
     timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
     timestampReached = False
 
-    for page in range(0, 10):
+    for page in range(0, MAX_MESSAGE_PAGES):
 
         if timestampReached: break
 
