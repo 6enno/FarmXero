@@ -73,7 +73,7 @@ def getJournalForDay(day, printJnl=True, archive=True):
     minerFeeNzd = round(nanoFilToFil(minerFee) * exchRate, 2)
     burnFeeNzd = round(nanoFilToFil(burnFee) * exchRate, 2)
     slashNzd = round(nanoFilToFil(slash) * exchRate, 2)
-    transfersNzd = round(nanoFilToFil(transfers) * exchRate, 2)
+    transfersNzd = -round(nanoFilToFil(transfers) * exchRate, 2)#positive transfers (into miner) come from credits therefore -ve
     blockRewardsNzd = -round(nanoFilToFil(blockRewards) * exchRate, 2)#Rewards are credits therefore are -ve
     minerBalanceNzd = -(transfersNzd + collatNzd + minerFeeNzd + burnFeeNzd + slashNzd + blockRewardsNzd)
     jnlNarration = 'Filfox data for the day ' + startDate.strftime('%d-%m-%Y') #+ ' to ' + endDate.strftime('%d-%m-%Y')
