@@ -5,20 +5,26 @@ import json
 import datetime
 import time
 import os
+import sys
+import argparse
 import FilfoxScraper
 import Addresses
 import coingeckoScraper
 import xeroAccounts as xa
 import data_folders
 
-from xero_python.accounting import ManualJournal, ManualJournalLine
+try:
+    from xero_python.accounting import ManualJournal, ManualJournalLine
+except:
+    print('you need to activate the environment run the following:')
+    print('source venv/bin/activate')
 
 # from xero_python.accounting import AccountingApi, ManualJournal, ManualJournalLine
 
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
 
-def getJournalForDay(day, printJnl=True, archive=True):
+def getJournalForDay(day, printJnl=True, archive=data_folders.JOURNAL_ARCHIVE):
 
     walletAddress = Addresses.minerAddress
     startDate = day
@@ -96,19 +102,19 @@ def getJournalForDay(day, printJnl=True, archive=True):
 
     mj = ManualJournal(narration=jnlNarration, journal_lines=jnlLines, date=startDate)
 
-    if(archive):
+    if(archive != 'none'):
         ARCHIVE_HEADER = 'date, narration, \
         collat, Miner Fee, Burn Fee, Slash, Transfers, Block rewards, \
         Blocks won, exch rate, \
         NZD collat, NZD Miner Fee, NZD Burn Fee, NZD Slash, NZD Transfers, NZD Block rewards, NZD Balance\n'
-        if(os.path.exists(data_folders.JOURNAL_ARCHIVE) == False):
-            with open(data_folders.JOURNAL_ARCHIVE, 'w') as f:
+        if(os.path.exists(archive) == False):
+            with open(archive, 'w') as f:
                 f.write(ARCHIVE_HEADER)
         csvLine = startDate.strftime('%d-%m-%Y')+','+str(jnlNarration)+','+\
         str(collat)+','+str(minerFee)+','+str(burnFee)+','+str(slash)+','+str(transfers)+','+str(blockRewards)+','+\
         str(numBlocksWon)+','+str(exchRate)+','+\
         str(collatNzd)+','+str(minerFeeNzd)+','+str(burnFeeNzd)+','+str(slashNzd)+','+str(transfersNzd)+','+str(blockRewardsNzd)+','+str(minerBalanceNzd)+'\n'
-        with open(data_folders.JOURNAL_ARCHIVE, 'a') as f:
+        with open(archive, 'a') as f:
             f.write(csvLine)
 
 
@@ -125,6 +131,28 @@ def getJournalForDay(day, printJnl=True, archive=True):
         print('blocks won: ' + str(numBlocksWon))
 
     return mj
+
+
+if __name__ == '__main__':
+    #print('you ran the aggregator stand alone: warning no journals posted to Xero')
+
+    p = argparse.ArgumentParser(description='Python Aggregator')
+    p.add_argument('-d', '--day', help='Day you want in format yyyy-mm-dd', required=True)
+    p.add_argument('-p', '--print', help='Print the journal to std out', required=False, default=True)
+    p.add_argument('-a', '--archive',
+        help='Path for CSV output (default '+data_folders.JOURNAL_ARCHIVE+') or "none" for no archive',
+        required=False, default=data_folders.JOURNAL_ARCHIVE)
+
+    args = p.parse_args()
+
+    print(str(sys.argv))
+
+    day = datetime.datetime.strptime(args.day, "%Y-%m-%d")
+
+    getJournalForDay(day, args.print, args.archive)
+
+
+
 
 
 # getJournalForDay(datetime.date(2020,11,1))

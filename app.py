@@ -315,8 +315,8 @@ def testTheThing():
 
 # Test 6: Get Daily Journals over a date range (Massively inefficient but owel)
 
-    startDate = datetime.date(2020,10,15)
-    date = datetime.date(2020,10,31)
+    startDate = datetime.date(2021,1,1)
+    date = datetime.date(2021,3,31)
     endDate = date
 
     currentDate = startDate
