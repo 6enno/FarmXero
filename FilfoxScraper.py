@@ -90,6 +90,8 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             #if count > 30:
             #    break
 
+            # ==== TODO ==== Check if there is this message in the DB and skip if there is
+
             if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
                 # print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
                 continue

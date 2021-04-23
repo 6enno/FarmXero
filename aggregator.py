@@ -145,10 +145,7 @@ if __name__ == '__main__':
 
     args = p.parse_args()
 
-    print(str(sys.argv))
-
     day = datetime.datetime.strptime(args.day, "%Y-%m-%d")
-
     getJournalForDay(day, args.print, args.archive)
 
 

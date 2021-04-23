@@ -2,10 +2,12 @@
 import csv
 import datetime
 import os
+import sqlite3
 
 MESSAGE_ARCHIVE = 'archive/messages/'
 BLOCKS_ARCHIVE = 'archive/blocks/'
 JOURNAL_ARCHIVE = 'archive/journals.csv'
+DATABASE_ARCHIVE = 'archive/farmxero.db'
 
 def nanoFilToFil(nanoFil):
     return nanoFil*(10**-18)
@@ -128,3 +130,63 @@ def quickRecFIL(startDate, endDate, tolerance=0.001):
 
     print('all recs checked')
     return 0
+
+def connectDB(dbFile=DATABASE_ARCHIVE):
+    conn = sqlite3.connect(dbFile)
+    return conn
+
+def createMesagesDB(conn):
+    sql = '''
+        CREATE TABLE MESSAGES (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            cid TEXT,
+            datetime DATETIME,
+            from_wallet TEXT,
+            to_wallet TEXT,
+            collat FLOAT,
+            miner_fee FLOAT,
+            burn_fee FLOAT,
+            slash FLOAT,
+            transfer FLOAT
+        );'''
+
+    with conn:
+        c = conn.cursor()
+        c.execute(sql)
+
+def addMessageToDB(conn, cid, datetime, fromWallet, toWallet, collat, minerFee, burnFee, slash, transfer):
+    sql = '''
+    INSERT INTO MESSAGES
+    (cid, datetime, from_wallet, to_wallet, collat, miner_fee, burn_fee, slash, transfer)
+    values(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    '''
+    data = [
+        (
+        cid, datetime,
+        fromWallet,
+        toWallet,
+        nanoFilToFil(collat),
+        nanoFilToFil(minerFee),
+        nanoFilToFil(burnFee),
+        nanoFilToFil(slash),
+        nanoFilToFil(transfer)
+        )
+    ]
+
+    conn.executemany(sql, data)
+
+def getAllMessages(conn):
+    sql = 'SELECT * FROM MESSAGES'
+    with conn:
+        data = conn.execute(sql)
+
+    for d in data:
+        print(d)
+
+
+
+if __name__ == '__main__':
+    c = connectDB()
+    # createMesagesDB(c)
+    addMessageToDB(c, 'testid', datetime.datetime.now(), 'fromwallet233425', 'towallettsdfaasdfasd', 100000000, 2222222, 3333333, 444444, 5555555)
+    getAllMessages(c)
