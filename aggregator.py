@@ -108,7 +108,7 @@ def getJournalForDay(day, printJnl=True, archive=data_folders.JOURNAL_ARCHIVE):
         Blocks won, exch rate, \
         NZD collat, NZD Miner Fee, NZD Burn Fee, NZD Slash, NZD Transfers, NZD Block rewards, NZD Balance\n'
         if(os.path.exists(archive) == False):
-            with open(archive, 'w') as f:
+            with open(archive, 'w+') as f:
                 f.write(ARCHIVE_HEADER)
         csvLine = startDate.strftime('%d-%m-%Y')+','+str(jnlNarration)+','+\
         str(collat)+','+str(minerFee)+','+str(burnFee)+','+str(slash)+','+str(transfers)+','+str(blockRewards)+','+\

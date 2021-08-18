@@ -38,7 +38,7 @@ def printTableCsv(table):
     return csvString
 
 def writeTableToCSV(filename, table):
-    f = open(filename, 'w')
+    f = open(filename, 'w+')
     f.write(printTableCsv(table))
     f.close()
     return 0
@@ -53,7 +53,7 @@ def printBlockTableCsv(table):
     return csvString
 
 def writeBlockTableToCSV(filename, table):
-    f = open(filename, 'w')
+    f = open(filename, 'w+')
     f.write(printBlockTableCsv(table))
     f.close()
     return 0
