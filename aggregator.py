@@ -38,11 +38,11 @@ def getJournalForDay(day, printJnl=True, archive=data_folders.JOURNAL_ARCHIVE):
         wTable = FilfoxScraper.getMessageTableForDateRange(startDate, endDate, w)
         table += wTable
 
-    msgFn = data_folders.MESSAGE_ARCHIVE + 'msgs_' + startDate.strftime('%d-%m-%Y') + '.csv'
+    msgFn = data_folders.MESSAGE_ARCHIVE + 'msgs_' + startDate.strftime('%Y-%m-%d') + '.csv'
     FilfoxScraper.writeTableToCSV(msgFn, table)
 
     blocksWon = FilfoxScraper.getBlocksTableForDateRange(startDate, endDate, walletAddress)
-    blockFn = data_folders.BLOCKS_ARCHIVE + 'blocks_' + startDate.strftime('%d-%m-%Y') + '.csv'
+    blockFn = data_folders.BLOCKS_ARCHIVE + 'blocks_' + startDate.strftime('%Y-%m-%d') + '.csv'
     FilfoxScraper.writeBlockTableToCSV(blockFn, blocksWon)
 
     transfers = 0
