@@ -3,6 +3,7 @@ import json
 import datetime
 import time
 import Addresses
+import argparse
 
 # This module scrapes data from filfox.info/ and populates a table[] of data
 # This will be a 'table[]' of 'rows{}'
@@ -21,6 +22,9 @@ def messageDetailsUrl(address):
 
 def blocksUrl(address, page):
     return 'https://filfox.info/api/v1/address/'+address+'/blocks?pageSize=100&page='+str(page)
+
+def txnUrl(address, page):
+    return 'https://filfox.info/api/v1/address/'+address+'/transfers?pageSize=100&page='+str(page)
 
 def printTableCsv(table):
     csvString = 'messageId, type, timestamp, transfer, collateral, miner-fee, burn-fee, slash, status\n'
@@ -58,6 +62,19 @@ def writeBlockTableToCSV(filename, table):
     f.close()
     return 0
 
+def printTxnTableCsv(table):
+    csvString = 'Height, Timestamp, Message, From, To, Value, Type\n'
+    for r in table:
+        csvRow = ', '.join('{}'.format(v) for k,v in r.items()) + '\n'
+        csvString = csvString + csvRow
+    return csvString
+
+def writeTxnTableToCSV(filename, table):
+    f = open(filename, 'w+')
+    f.write(printTxnTableCsv(table))
+    f.close()
+    return 0
+
 # This pull relevent data from messages over a date range
 # Note that time works in reverse for timestamps start = latest time, end = earliest time
 #
@@ -77,7 +94,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
 
         if timestampReached: break
 
-        print('about to send page request')
+        print('about to send page request: '+ messagesUrl(wallet, page))
         minerMessages = requests.get(messagesUrl(wallet, page)).json()
 
         if(len(minerMessages['messages']) == 0):
@@ -93,7 +110,7 @@ def getMessageTableForDateRange(endDate, startDate, wallet):
             # ==== TODO ==== Check if there is this message in the DB and skip if there is
 
             if m['timestamp'] > timeStart: #larger timestamps are later message > starttime
-                # print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
+                print('timestamp ('+str(m['timestamp'])+') before timestart ' + str(timeStart))
                 continue
             elif m['timestamp'] <= timeEnd:
                 print('timestamp ('+str(m['timestamp'])+') after timeend ' + str(timeEnd))
@@ -217,6 +234,94 @@ def getBlocksTableForDateRange(endDate, startDate, wallet):
     #print table
     #print 'found '+str(count)+ ' messages'
     return table
+
+def getSimpleTxnJson(endDate, startDate, wallet):
+    table = []
+    count = 0
+
+    timeStart = int(time.mktime(startDate.timetuple())) #Local NZ time
+    timeEnd = int(time.mktime(endDate.timetuple())) #Local NZ time
+    timestampReached = False
+
+    for page in range(0, MAX_MESSAGE_PAGES):
+
+        if timestampReached: break
+
+        print('about to send txn page request pg ' + str(page))
+        txns = requests.get(txnUrl(wallet, page)).json()
+
+        if(txns['totalCount'] == 0):
+            print('Reached end of txns')
+            break
+
+        for t in txns['transfers']:
+
+            if t['timestamp'] > timeStart: #larger timestamps are later message > starttime
+                print('timestamp ('+str(t['timestamp'])+') before timestart ' + str(timeStart))
+                continue
+            if t['timestamp'] <= timeEnd:
+                print('timestamp ('+str(t['timestamp'])+') after timeend ' + str(timeEnd))
+                timestampReached = True
+                break
+
+            count = count + 1
+            # print('found a block within timestamp range ' + str(count))
+
+            row = {
+                'Height':t['height'],
+                'Timestamp':t['timestamp'],
+                'Message':t['message'],
+                'From':t['from'],
+                'To':t['to'],
+                'Value':t['value'],
+                'Type':t['type'],
+            }
+            # print('row logged')
+            table.append(row)
+
+    #print table
+    #print 'found '+str(count)+ ' messages'
+    return table
+
+
+
+
+
+# Can run this as standalone to grab filfox transactions
+if __name__ == '__main__':
+    p = argparse.ArgumentParser(description='FilfoxScraper - Get data from Filfox')
+    p.add_argument('-b', '--blocks', help='get blocks instead of messages (only applies to miner addresses)', required=False, default=False, action='store_true')
+    p.add_argument('-t', '--transactions', help='get simple list of transactions', required=False, default=False, action='store_true')
+    p.add_argument('-w', '--wallet', help='specify the wallet address you want transactions for', required=False, default=Addresses.minerAddress)
+    p.add_argument('-s', '--start', help='specify the start date that you want to get transactions from (format yyyy-mm-dd)', required=False, default='2020-01-01')
+    p.add_argument('-e', '--end', help='specify the end date that you want to get transactions until (format yyyy-mm-dd)', required=False, default=datetime.date.today().isoformat())
+    p.add_argument('-f', '--filesave', help='specify the file to save the csv output to', required=False)
+    args = p.parse_args()
+
+    # startDate = datetime.date.fromisoformat(args.start)
+    startDate = datetime.datetime.strptime(args.start, "%Y-%m-%d")
+    # endDate = datetime.date.fromisoformat(args.end)
+    endDate = datetime.datetime.strptime(args.end, "%Y-%m-%d")
+
+    print(startDate)
+    print(endDate)
+
+    table = {}
+    if (args.blocks):
+        table = getBlocksTableForDateRange(startDate, endDate, args.wallet)
+        printBlockTableCsv(table)
+        if(args.filesave):
+            writeBlockTableToCSV(args.filesave, table)
+    elif(args.transactions):
+        table = getSimpleTxnJson(startDate, endDate, args.wallet)
+        print(printTxnTableCsv(table))
+        if(args.filesave):
+            writeTxnTableToCSV(args.filesave, table)
+    else:
+        table = getMessageTableForDateRange(startDate, endDate, args.wallet)
+        printTableCsv(table)
+        if(args.filesave):
+            writeTableToCSV(args.filesave, table)
 
 
 
