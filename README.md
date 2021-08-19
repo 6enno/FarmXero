@@ -15,3 +15,26 @@ If you do use and modify it to add exta connections feel free to submit a pull r
 accounting in the crypto world so it would be cool to build this beyond Xero and perhaps beyond Filecoin. Sorry, you cannot 
 use my Filecoin miner or Xero accounts for testing and you will not find any keys in the repo. Pull requests with any keys 
 or private info will not be accepted.
+
+## Install
+_note these are incomplete notes for now_
+
+Create the folders if the git repo didn't already do it
+
+```
+mkdir archive
+mkdir archive/messages
+mkdir archive/blocks
+```
+
+Copy the `Secrets.py_Example` to `Secrets.py` and fill in api keys if you want to use Xero
+Copy the `Addresses.py_Example` to `Addresses.py` and fill in your wallets (note that these are never shared on Git or by the code)
+
+Install dependencies (install the xero one even if you don't want to use xero, it has some handy journal structures internally)
+
+```
+python -m pip install xero_python
+python -m pip install requests
+```
+
+
