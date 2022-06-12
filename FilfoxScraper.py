@@ -267,10 +267,15 @@ def getSimpleTxnJson(endDate, startDate, wallet):
             count = count + 1
             # print('found a block within timestamp range ' + str(count))
 
+            try:
+                msg = t['message']
+            except KeyError:
+                msg = 'official'
+
             row = {
                 'Height':t['height'],
                 'Timestamp':t['timestamp'],
-                'Message':t['message'],
+                'Message': msg,
                 'From':t['from'],
                 'To':t['to'],
                 'Value':t['value'],
